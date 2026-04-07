@@ -1,0 +1,770 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+#app{min-height:600px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.screen{display:none;flex-direction:column;height:100%}
+.screen.active{display:flex}
+.topbar{background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.topbar h2{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-teal{background:#E1F5EE;color:#0F6E56}
+.badge-purple{background:#EEEDFE;color:#534AB7}
+.nav{display:flex;border-top:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.nav button{flex:1;padding:10px 4px;font-size:12px;border:none;background:none;cursor:pointer;color:var(--color-text-secondary);display:flex;flex-direction:column;align-items:center;gap:3px;transition:color 0.15s}
+.nav button.active{color:#1D9E75;font-weight:500}
+.nav-icon{font-size:18px}
+.scroll{flex:1;overflow-y:auto;padding:12px}
+button.btn-primary{padding:8px 18px;background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-md);cursor:pointer;font-size:14px;font-weight:500}
+button.btn-secondary{padding:8px 18px;background:var(--color-background-secondary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:14px}
+button.btn-danger{padding:8px 18px;background:#E24B4A;color:#fff;border:none;border-radius:var(--border-radius-md);cursor:pointer;font-size:14px;font-weight:500}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:12px}
+.hp-bar{height:8px;border-radius:4px;background:var(--color-background-secondary);overflow:hidden;margin:4px 0}
+.hp-fill{height:100%;border-radius:4px;transition:width 0.4s}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;margin:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mini-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px;text-align:center;cursor:pointer;transition:border-color 0.15s}
+.mini-card:hover{border-color:var(--color-border-secondary)}
+.mini-card.owned{border-color:#1D9E75}
+.mini-card.not-owned{opacity:0.4;filter:grayscale(1)}
+.world-map{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:4px}
+.region-btn{padding:14px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);cursor:pointer;text-align:left;transition:all 0.15s}
+.region-btn:hover{border-color:#1D9E75;background:#E1F5EE}
+.region-emoji{font-size:22px;display:block;margin-bottom:4px}
+.region-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.region-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.battle-field{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:12px 0}
+.fighter{flex:1;text-align:center}
+.fighter-emoji{font-size:52px;display:block;margin:6px 0}
+.battle-moves{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.move-btn{padding:10px 6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);cursor:pointer;font-size:12px;font-weight:500;text-align:center;transition:all 0.15s;color:var(--color-text-primary)}
+.move-btn:hover:not(:disabled){background:#E1F5EE;border-color:#1D9E75}
+.move-btn:disabled{opacity:0.4;cursor:not-allowed}
+.log-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px;font-size:13px;color:var(--color-text-secondary);min-height:52px;margin:8px 0;line-height:1.5}
+.xp-bar{height:6px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden;margin:4px 0}
+.xp-fill{height:100%;border-radius:3px;background:#185FA5;transition:width 0.5s}
+.caught-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-tertiary)}
+.caught-item:hover{border-color:#1D9E75}
+.type-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.rarity-common{color:#5F5E5A}
+.rarity-rare{color:#185FA5}
+.rarity-epic{color:#534AB7}
+.rarity-legendary{color:#854F0B}
+</style>
+
+<div id="app">
+  <div id="screen-explore" class="screen active">
+    <div class="topbar">
+      <h2>Animal GO</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge badge-amber" id="ball-count">Balls: 15</span>
+        <span class="badge badge-green" id="coin-count">Coins: 200</span>
+      </div>
+    </div>
+    <div class="scroll">
+      <div style="background:#E1F5EE;border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px;border:0.5px solid #9FE1CB">
+        <div style="font-size:13px;color:#0F6E56;font-weight:500;margin-bottom:4px">Trainer Level <span id="trainer-level">1</span></div>
+        <div class="xp-bar"><div class="xp-fill" id="trainer-xp-bar" style="width:5%"></div></div>
+        <div style="font-size:11px;color:#1D9E75" id="trainer-xp-label">5 / 100 XP</div>
+      </div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px;color:var(--color-text-primary)">Choose a region to explore</div>
+      <div class="world-map" id="region-list"></div>
+    </div>
+    <nav class="nav" id="main-nav">
+      <button class="active" onclick="showTab('explore')"><span class="nav-icon">🌍</span>Explore</button>
+      <button onclick="showTab('collection')"><span class="nav-icon">📖</span>Animaldex</button>
+      <button onclick="showTab('team')"><span class="nav-icon">🐾</span>Team</button>
+      <button onclick="showTab('shop')"><span class="nav-icon">🛒</span>Shop</button>
+      <button onclick="showTab('profile')"><span class="nav-icon">👤</span>Profile</button>
+    </nav>
+  </div>
+
+  <div id="screen-collection" class="screen">
+    <div class="topbar"><h2>Animaldex</h2><span class="badge badge-teal" id="dex-count">0 / 40</span></div>
+    <div style="padding:10px 12px 0">
+      <input type="text" id="dex-search" placeholder="Search animals..." oninput="renderDex()" style="width:100%;padding:7px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px">
+    </div>
+    <div class="scroll" id="dex-grid" style="padding:10px 12px"></div>
+    <nav class="nav">
+      <button onclick="showTab('explore')"><span class="nav-icon">🌍</span>Explore</button>
+      <button class="active" onclick="showTab('collection')"><span class="nav-icon">📖</span>Animaldex</button>
+      <button onclick="showTab('team')"><span class="nav-icon">🐾</span>Team</button>
+      <button onclick="showTab('shop')"><span class="nav-icon">🛒</span>Shop</button>
+      <button onclick="showTab('profile')"><span class="nav-icon">👤</span>Profile</button>
+    </nav>
+  </div>
+
+  <div id="screen-team" class="screen">
+    <div class="topbar"><h2>My Team</h2><span class="badge badge-blue" id="team-count">0 / 6</span></div>
+    <div class="scroll" id="team-list"></div>
+    <nav class="nav">
+      <button onclick="showTab('explore')"><span class="nav-icon">🌍</span>Explore</button>
+      <button onclick="showTab('collection')"><span class="nav-icon">📖</span>Animaldex</button>
+      <button class="active" onclick="showTab('team')"><span class="nav-icon">🐾</span>Team</button>
+      <button onclick="showTab('shop')"><span class="nav-icon">🛒</span>Shop</button>
+      <button onclick="showTab('profile')"><span class="nav-icon">👤</span>Profile</button>
+    </nav>
+  </div>
+
+  <div id="screen-shop" class="screen">
+    <div class="topbar"><h2>Shop</h2><span class="badge badge-green" id="shop-coins">Coins: 200</span></div>
+    <div class="scroll" id="shop-content"></div>
+    <nav class="nav">
+      <button onclick="showTab('explore')"><span class="nav-icon">🌍</span>Explore</button>
+      <button onclick="showTab('collection')"><span class="nav-icon">📖</span>Animaldex</button>
+      <button onclick="showTab('team')"><span class="nav-icon">🐾</span>Team</button>
+      <button class="active" onclick="showTab('shop')"><span class="nav-icon">🛒</span>Shop</button>
+      <button onclick="showTab('profile')"><span class="nav-icon">👤</span>Profile</button>
+    </nav>
+  </div>
+
+  <div id="screen-profile" class="screen">
+    <div class="topbar"><h2>Profile</h2></div>
+    <div class="scroll" id="profile-content"></div>
+    <nav class="nav">
+      <button onclick="showTab('explore')"><span class="nav-icon">🌍</span>Explore</button>
+      <button onclick="showTab('collection')"><span class="nav-icon">📖</span>Animaldex</button>
+      <button onclick="showTab('team')"><span class="nav-icon">🐾</span>Team</button>
+      <button onclick="showTab('shop')"><span class="nav-icon">🛒</span>Shop</button>
+      <button class="active" onclick="showTab('profile')"><span class="nav-icon">👤</span>Profile</button>
+    </nav>
+  </div>
+
+  <div id="screen-encounter" class="screen">
+    <div class="topbar" id="enc-topbar"><h2>Wild Animal!</h2></div>
+    <div class="scroll" id="enc-content"></div>
+  </div>
+
+  <div id="screen-battle" class="screen">
+    <div class="topbar"><h2>Battle!</h2><span id="battle-round-badge" class="badge badge-red">Round 1</span></div>
+    <div class="scroll" id="battle-content"></div>
+  </div>
+
+  <div id="screen-region" class="screen">
+    <div class="topbar" id="region-topbar"><h2>Region</h2><button onclick="showTab('explore')" style="font-size:13px;background:none;border:none;cursor:pointer;color:#1D9E75">← Back</button></div>
+    <div class="scroll" id="region-content"></div>
+  </div>
+
+  <div id="screen-animal-detail" class="screen">
+    <div class="topbar"><h2>Animal Detail</h2><button onclick="goBack()" style="font-size:13px;background:none;border:none;cursor:pointer;color:#1D9E75">← Back</button></div>
+    <div class="scroll" id="detail-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ANIMALS = [
+  {id:1,name:"Lion",emoji:"🦁",region:"Africa",type:"Predator",hp:90,atk:85,def:60,spd:75,rarity:"rare",moves:["Roar","Pounce","Mane Slash","Pride Fury"],desc:"King of the savanna, hunts in coordinated prides.",habitat:"Savanna",weight:"190kg"},
+  {id:2,name:"Elephant",emoji:"🐘",region:"Africa",type:"Herbivore",hp:140,atk:70,def:100,spd:40,rarity:"epic",moves:["Trumpet","Stomp","Tusk Charge","Mud Shield"],desc:"Largest land animal, highly intelligent with excellent memory.",habitat:"Grassland",weight:"5000kg"},
+  {id:3,name:"Zebra",emoji:"🦓",region:"Africa",type:"Herbivore",hp:75,atk:50,def:55,spd:80,rarity:"common",moves:["Kick","Sprint","Herd Rush","Stripe Dazzle"],desc:"Iconic striped herbivore that confuses predators with its pattern.",habitat:"Savanna",weight:"350kg"},
+  {id:4,name:"Giraffe",emoji:"🦒",region:"Africa",type:"Herbivore",hp:100,atk:55,def:70,spd:60,rarity:"rare",moves:["Neck Slam","Kick","High Reach","Towering Stomp"],desc:"World's tallest animal, feeds on treetop leaves.",habitat:"Savanna",weight:"1200kg"},
+  {id:5,name:"Gorilla",emoji:"🦍",region:"Africa",type:"Primate",hp:110,atk:95,def:80,spd:45,rarity:"epic",moves:["Chest Beat","Ground Pound","Vine Swing","Alpha Charge"],desc:"Gentle giant of the rainforest, lives in family groups.",habitat:"Rainforest",weight:"200kg"},
+  {id:6,name:"Cheetah",emoji:"🐆",region:"Africa",type:"Predator",hp:65,atk:80,def:40,spd:100,rarity:"rare",moves:["Sprint","Claw Swipe","Tackle","Blinding Speed"],desc:"Fastest land animal, reaches 120 km/h in short bursts.",habitat:"Savanna",weight:"60kg"},
+  {id:7,name:"Hippo",emoji:"🦛",region:"Africa",type:"Herbivore",hp:150,atk:90,def:95,spd:30,rarity:"epic",moves:["Jaw Snap","Charge","Mud Blast","Yawn Roar"],desc:"One of Africa's most dangerous animals despite being a herbivore.",habitat:"Rivers",weight:"2000kg"},
+  {id:8,name:"Tiger",emoji:"🐯",region:"Asia",type:"Predator",hp:95,atk:90,def:65,spd:80,rarity:"epic",moves:["Tiger Strike","Pounce","Claw Combo","Forest Ambush"],desc:"Solitary apex predator and the largest wild cat species.",habitat:"Jungle",weight:"300kg"},
+  {id:9,name:"Giant Panda",emoji:"🐼",region:"Asia",type:"Herbivore",hp:85,atk:50,def:75,spd:35,rarity:"legendary",moves:["Bamboo Bash","Bear Hug","Roll Attack","Bamboo Shield"],desc:"Beloved bear species that feeds almost exclusively on bamboo.",habitat:"Mountain Forest",weight:"120kg"},
+  {id:10,name:"Snow Leopard",emoji:"🐾",region:"Asia",type:"Predator",hp:80,atk:85,def:65,spd:90,rarity:"legendary",moves:["Snow Pounce","Ice Claw","Mountain Leap","Blizzard Fang"],desc:"Elusive big cat of the Himalayas, known as the ghost of the mountains.",habitat:"Alpine",weight:"55kg"},
+  {id:11,name:"Komodo Dragon",emoji:"🦎",region:"Asia",type:"Reptile",hp:100,atk:88,def:80,spd:50,rarity:"rare",moves:["Venom Bite","Tail Whip","Claw Rake","Toxic Breath"],desc:"World's largest lizard, uses venom to subdue prey.",habitat:"Island Scrub",weight:"90kg"},
+  {id:12,name:"Orangutan",emoji:"🦧",region:"Asia",type:"Primate",hp:90,atk:70,def:65,spd:40,rarity:"rare",moves:["Vine Grab","Branch Smash","Fruit Throw","Canopy Swing"],desc:"Solitary great ape of Borneo and Sumatra's rainforests.",habitat:"Rainforest",weight:"90kg"},
+  {id:13,name:"Polar Bear",emoji:"🐻‍❄️",region:"Arctic",type:"Predator",hp:130,atk:95,def:85,spd:55,rarity:"epic",moves:["Arctic Swipe","Ice Crush","Blizzard Roar","Frost Slam"],desc:"Arctic apex predator, the largest land carnivore on Earth.",habitat:"Arctic Ice",weight:"700kg"},
+  {id:14,name:"Arctic Fox",emoji:"🦊",region:"Arctic",type:"Predator",hp:55,atk:55,def:45,spd:85,rarity:"common",moves:["Quick Bite","Snow Dash","Ice Trick","Howl"],desc:"Hardy fox adapted to extreme Arctic conditions.",habitat:"Tundra",weight:"7kg"},
+  {id:15,name:"Reindeer",emoji:"🦌",region:"Arctic",type:"Herbivore",hp:80,atk:60,def:65,spd:70,rarity:"common",moves:["Antler Charge","Hoof Stamp","Blizzard Sprint","Herd Surge"],desc:"Migratory deer adapted to cold climates.",habitat:"Tundra",weight:"200kg"},
+  {id:16,name:"Narwhal",emoji:"🦄",region:"Arctic",type:"Marine",hp:85,atk:75,def:60,spd:70,rarity:"legendary",moves:["Tusk Jab","Sonar Pulse","Ice Dive","Spiral Horn"],desc:"Arctic whale with a spiraled tusk, called the unicorn of the sea.",habitat:"Arctic Ocean",weight:"1600kg"},
+  {id:17,name:"Bald Eagle",emoji:"🦅",region:"North America",type:"Bird",hp:70,atk:80,def:50,spd:90,rarity:"rare",moves:["Talon Strike","Dive Bomb","Screech","Wind Slash"],desc:"Iconic bird of prey and national symbol of the United States.",habitat:"Forest & Coast",weight:"6kg"},
+  {id:18,name:"Grizzly Bear",emoji:"🐻",region:"North America",type:"Predator",hp:125,atk:90,def:80,spd:55,rarity:"epic",moves:["Bear Swipe","Body Slam","Salmon Toss","Roar"],desc:"Powerful omnivore of North American mountains and forests.",habitat:"Forest",weight:"400kg"},
+  {id:19,name:"Bison",emoji:"🦬",region:"North America",type:"Herbivore",hp:120,atk:80,def:85,spd:60,rarity:"rare",moves:["Stampede","Horn Gore","Dust Cloud","Herd Crush"],desc:"Largest North American land animal.",habitat:"Prairie",weight:"1000kg"},
+  {id:20,name:"Rattlesnake",emoji:"🐍",region:"North America",type:"Reptile",hp:65,atk:85,def:40,spd:60,rarity:"common",moves:["Venom Strike","Rattle Scare","Coil Crush","Fang Lunge"],desc:"Venomous pit viper famous for its distinctive rattling tail.",habitat:"Desert",weight:"2kg"},
+  {id:21,name:"Jaguar",emoji:"🐆",region:"South America",type:"Predator",hp:95,atk:88,def:65,spd:78,rarity:"epic",moves:["Skull Bite","Jungle Pounce","Stealthy Strike","River Pounce"],desc:"Apex predator of the Amazon with the most powerful bite of any big cat.",habitat:"Rainforest",weight:"120kg"},
+  {id:22,name:"Anaconda",emoji:"🐍",region:"South America",type:"Reptile",hp:110,atk:78,def:70,spd:35,rarity:"rare",moves:["Constrict","Death Roll","River Surge","Stealth Squeeze"],desc:"World's heaviest snake, an ambush predator of Amazonian waterways.",habitat:"Rainforest River",weight:"250kg"},
+  {id:23,name:"Macaw",emoji:"🦜",region:"South America",type:"Bird",hp:50,atk:45,def:35,spd:95,rarity:"common",moves:["Beak Peck","Wing Gust","Screech","Color Dazzle"],desc:"Vibrant parrot of the Amazon rainforest.",habitat:"Rainforest",weight:"1.5kg"},
+  {id:24,name:"Capybara",emoji:"🐹",region:"South America",type:"Herbivore",hp:70,atk:35,def:50,spd:50,rarity:"common",moves:["Splash","Herd Rally","Chomp","Mud Roll"],desc:"World's largest rodent, semi-aquatic and social.",habitat:"Wetlands",weight:"65kg"},
+  {id:25,name:"Giant Anteater",emoji:"🐜",region:"South America",type:"Insectivore",hp:80,atk:70,def:60,spd:40,rarity:"rare",moves:["Claw Slash","Tongue Whip","Snout Drill","Armored Roll"],desc:"Toothless mammal with a 60cm tongue.",habitat:"Grassland",weight:"40kg"},
+  {id:26,name:"Kangaroo",emoji:"🦘",region:"Oceania",type:"Herbivore",hp:85,atk:72,def:60,spd:82,rarity:"rare",moves:["Box Kick","Tail Balance","Leap Strike","Mob Rush"],desc:"Australia's iconic marsupial, can jump 9 meters long.",habitat:"Outback",weight:"90kg"},
+  {id:27,name:"Koala",emoji:"🐨",region:"Oceania",type:"Herbivore",hp:55,atk:30,def:50,spd:25,rarity:"rare",moves:["Claw Scratch","Eucalyptus Fog","Sleepy Hug","Drop Kick"],desc:"Arboreal marsupial that sleeps up to 22 hours a day.",habitat:"Eucalyptus Forest",weight:"14kg"},
+  {id:28,name:"Platypus",emoji:"🦫",region:"Oceania",type:"Monotreme",hp:60,atk:65,def:55,spd:60,rarity:"legendary",moves:["Venomous Spur","River Dive","Electro-Sense","Bill Slap"],desc:"One of only 5 egg-laying mammal species, also has venomous spurs.",habitat:"River",weight:"2kg"},
+  {id:29,name:"Saltwater Croc",emoji:"🐊",region:"Oceania",type:"Reptile",hp:130,atk:95,def:90,spd:45,rarity:"epic",moves:["Death Roll","Jaw Snap","Tail Swipe","Ambush Lunge"],desc:"World's largest living reptile.",habitat:"Estuaries",weight:"1000kg"},
+  {id:30,name:"Cassowary",emoji:"🐦",region:"Oceania",type:"Bird",hp:75,atk:85,def:55,spd:65,rarity:"rare",moves:["Dagger Kick","Charge","Claw Slash","Helmet Headbutt"],desc:"World's most dangerous bird, with dagger-like claws.",habitat:"Rainforest",weight:"70kg"},
+  {id:31,name:"Great White Shark",emoji:"🦈",region:"Ocean",type:"Marine",hp:115,atk:95,def:70,spd:85,rarity:"epic",moves:["Jaw Clamp","Torpedo Rush","Breach Attack","Feeding Frenzy"],desc:"Ocean's apex predator.",habitat:"Open Ocean",weight:"2000kg"},
+  {id:32,name:"Blue Whale",emoji:"🐋",region:"Ocean",type:"Marine",hp:200,atk:60,def:110,spd:45,rarity:"legendary",moves:["Sonic Blast","Tail Slap","Surge","Deep Dive"],desc:"Largest animal ever known to have existed on Earth.",habitat:"Open Ocean",weight:"180000kg"},
+  {id:33,name:"Octopus",emoji:"🐙",region:"Ocean",type:"Marine",hp:60,atk:65,def:50,spd:70,rarity:"common",moves:["Ink Blast","Tentacle Grab","Camouflage","Sucker Punch"],desc:"Highly intelligent mollusc that can change color.",habitat:"Coral Reef",weight:"15kg"},
+  {id:34,name:"Dolphin",emoji:"🐬",region:"Ocean",type:"Marine",hp:80,atk:65,def:55,spd:92,rarity:"rare",moves:["Echolocation","Fin Strike","Pod Rush","Sonic Screech"],desc:"Highly social and intelligent marine mammal.",habitat:"Open Ocean",weight:"300kg"},
+  {id:35,name:"Manta Ray",emoji:"🐡",region:"Ocean",type:"Marine",hp:90,atk:50,def:65,spd:75,rarity:"rare",moves:["Wing Slam","Glide Tackle","Ocean Surge","Spiral Roll"],desc:"Graceful giant with a wingspan up to 7 meters.",habitat:"Open Ocean",weight:"2000kg"},
+  {id:36,name:"Wolf",emoji:"🐺",region:"Europe",type:"Predator",hp:85,atk:80,def:60,spd:82,rarity:"rare",moves:["Pack Howl","Bite","Sprint Hunt","Lone Wolf"],desc:"Highly social apex predator that hunts in packs.",habitat:"Forest",weight:"80kg"},
+  {id:37,name:"Brown Bear",emoji:"🐻",region:"Europe",type:"Predator",hp:120,atk:88,def:78,spd:58,rarity:"rare",moves:["Bear Hug","Swipe","Salmon Snatch","Roar"],desc:"Widespread omnivore found across Eurasia.",habitat:"Forest",weight:"350kg"},
+  {id:38,name:"Red Fox",emoji:"🦊",region:"Europe",type:"Predator",hp:55,atk:58,def:42,spd:80,rarity:"common",moves:["Quick Bite","Pounce","Fox Trot","Shriek"],desc:"Highly adaptable fox that thrives in forests and cities.",habitat:"Forest & Fields",weight:"7kg"},
+  {id:39,name:"Lynx",emoji:"🐱",region:"Europe",type:"Predator",hp:72,atk:75,def:58,spd:78,rarity:"rare",moves:["Claw Rake","Snow Pounce","Stealth Strike","Ear Twitch"],desc:"Solitary wildcat adapted to cold northern forests.",habitat:"Boreal Forest",weight:"30kg"},
+  {id:40,name:"Flamingo",emoji:"🦩",region:"Africa",type:"Bird",hp:60,atk:45,def:40,spd:72,rarity:"common",moves:["Wing Slap","Beak Stab","Pink Dazzle","Flock Flutter"],desc:"Social wading bird whose pink color comes from carotenoids.",habitat:"Saltwater Lakes",weight:"4kg"},
+];
+
+const REGIONS = [
+  {id:"Africa",name:"Africa",emoji:"🌍",desc:"Savanna & Jungle",color:"#FAEEDA",border:"#EF9F27"},
+  {id:"Asia",name:"Asia",emoji:"🌏",desc:"Mountains & Rainforest",color:"#EEEDFE",border:"#7F77DD"},
+  {id:"Arctic",name:"Arctic",emoji:"❄️",desc:"Tundra & Ice",color:"#E6F1FB",border:"#378ADD"},
+  {id:"North America",name:"North America",emoji:"🏔️",desc:"Forests & Prairies",color:"#EAF3DE",border:"#639922"},
+  {id:"South America",name:"South America",emoji:"🌿",desc:"Amazon Rainforest",color:"#E1F5EE",border:"#1D9E75"},
+  {id:"Oceania",name:"Oceania",emoji:"🦘",desc:"Outback & Reef",color:"#FAEEDA",border:"#BA7517"},
+  {id:"Ocean",name:"Ocean",emoji:"🌊",desc:"Deep Sea & Coast",color:"#E6F1FB",border:"#185FA5"},
+  {id:"Europe",name:"Europe",emoji:"🌲",desc:"Forests & Fields",color:"#EAF3DE",border:"#3B6D11"},
+];
+
+const TYPE_COLORS = {
+  Predator:{bg:"#FCEBEB",color:"#A32D2D"},
+  Herbivore:{bg:"#EAF3DE",color:"#3B6D11"},
+  Marine:{bg:"#E6F1FB",color:"#185FA5"},
+  Bird:{bg:"#EEEDFE",color:"#534AB7"},
+  Reptile:{bg:"#FAEEDA",color:"#854F0B"},
+  Primate:{bg:"#FBEAF0",color:"#993556"},
+  Insectivore:{bg:"#E1F5EE",color:"#0F6E56"},
+  Monotreme:{bg:"#FAEEDA",color:"#854F0B"},
+};
+const RARITY_COLOR = {common:"#5F5E5A",rare:"#185FA5",epic:"#534AB7",legendary:"#854F0B"};
+const RARITY_LABEL = {common:"Common",rare:"Rare",epic:"Epic",legendary:"Legendary"};
+
+// ─── FIXED DAMAGE FORMULA ───────────────────────────────────────────────────
+// Old formula: (atk - def*0.3) * rand  →  e.g. 85 - 60*0.3 = 85-18 = 67, but
+// enemy: 95 - 60*0.3 = 77.  Both should be similar. Root cause was enemy DEF
+// was being subtracted from player ATK by accident due to wrong variable refs.
+// New formula: damage = (attacker.atk * 0.6) - (defender.def * 0.15) + rand(10,25)
+// This guarantees minimum meaningful damage (~25-40) even against high-DEF targets,
+// and scales nicely so high-ATK animals hit noticeably harder (~55-75).
+function calcDamage(atkStat, defStat) {
+  const base = Math.round(atkStat * 0.6 - defStat * 0.15);
+  const variance = Math.floor(Math.random() * 16) + 10; // +10 to +25
+  return Math.max(15, base + variance);
+}
+
+let state = {
+  balls:15, coins:200,
+  xp:5, level:1,
+  caught:{},
+  team:[],
+  items:{superBall:3, healPotion:3, revive:1},
+  battles:0, wins:0, catches:0,
+};
+
+let currentScreen = "explore";
+let prevScreen = "explore";
+let currentEncounter = null;
+let currentBattle = null;
+let wildHp = 100;
+
+function save(){try{localStorage.setItem("animalgo2",JSON.stringify(state))}catch(e){}}
+function load(){try{const d=localStorage.getItem("animalgo2");if(d)state=JSON.parse(d)}catch(e){}}
+load();
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+function showTab(tab){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-"+tab).classList.add("active");
+  prevScreen=currentScreen;currentScreen=tab;
+  if(tab==="collection")renderDex();
+  if(tab==="team")renderTeam();
+  if(tab==="shop")renderShop();
+  if(tab==="profile")renderProfile();
+  if(tab==="explore")renderExplore();
+}
+
+function goBack(){showTab(prevScreen==="animal-detail"?"collection":prevScreen)}
+
+function renderExplore(){
+  document.getElementById("trainer-level").textContent=state.level;
+  const xpNeeded=state.level*100;
+  const pct=Math.min(100,Math.round(state.xp/xpNeeded*100));
+  document.getElementById("trainer-xp-bar").style.width=pct+"%";
+  document.getElementById("trainer-xp-label").textContent=state.xp+" / "+xpNeeded+" XP";
+  document.getElementById("ball-count").textContent="Balls: "+state.balls;
+  document.getElementById("coin-count").textContent="Coins: "+state.coins;
+  const rl=document.getElementById("region-list");
+  rl.innerHTML=REGIONS.map(r=>`
+    <button class="region-btn" onclick="showRegion('${r.id}')" style="border-color:${r.border};background:${r.color}">
+      <span class="region-emoji">${r.emoji}</span>
+      <div class="region-name">${r.name}</div>
+      <div class="region-sub">${r.desc}</div>
+    </button>
+  `).join("");
+}
+
+function showRegion(regionId){
+  const region=REGIONS.find(r=>r.id===regionId);
+  const animals=ANIMALS.filter(a=>a.region===regionId);
+  document.getElementById("region-topbar").innerHTML=`<h2>${region.emoji} ${region.name}</h2><button onclick="showTab('explore')" style="font-size:13px;background:none;border:none;cursor:pointer;color:#1D9E75">← Back</button>`;
+  const content=document.getElementById("region-content");
+  content.innerHTML=`
+    <div style="background:${region.color};border:0.5px solid ${region.border};border-radius:var(--border-radius-lg);padding:14px;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px">${region.emoji} ${region.name}</div>
+      <div style="font-size:13px;color:var(--color-text-secondary)">${animals.length} species in this region</div>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-bottom:14px;padding:12px" onclick="startEncounter('${regionId}')">🔍 Search for Wild Animals</button>
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">Species in this region</div>
+    <div class="grid-3">${animals.map(a=>{
+      const owned=!!state.caught[a.id];
+      return`<div class="mini-card ${owned?"owned":"not-owned"}" onclick="${owned?"showAnimalDetail("+a.id+")":"void 0"}">
+        <div style="font-size:30px">${a.emoji}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);margin-top:2px">${owned?a.name:"???"}</div>
+        <div style="font-size:10px;color:${RARITY_COLOR[a.rarity]}">${RARITY_LABEL[a.rarity]}</div>
+      </div>`;
+    }).join("")}</div>
+  `;
+  prevScreen=currentScreen;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-region").classList.add("active");
+  currentScreen="region";
+}
+
+function startEncounter(regionId){
+  if(state.balls<=0){showToast("No capture balls left! Buy more in the shop.");return;}
+  const regionAnimals=ANIMALS.filter(a=>a.region===regionId);
+  const weights={common:50,rare:30,epic:15,legendary:5};
+  const pool=[];
+  regionAnimals.forEach(a=>{for(let i=0;i<weights[a.rarity];i++)pool.push(a);});
+  const animal=pool[Math.floor(Math.random()*pool.length)];
+  currentEncounter={animal,caught:false};
+  wildHp=animal.hp;
+  renderEncounter(animal);
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-encounter").classList.add("active");
+  prevScreen=currentScreen;currentScreen="encounter";
+}
+
+function renderEncounter(animal){
+  const tc=TYPE_COLORS[animal.type]||{bg:"#F1EFE8",color:"#444441"};
+  const already=!!state.caught[animal.id];
+  const hpPct=Math.round(wildHp/animal.hp*100);
+  const hpColor=hpPct>50?"#1D9E75":hpPct>25?"#EF9F27":"#E24B4A";
+  document.getElementById("enc-topbar").innerHTML=`<h2>Wild ${animal.name}!</h2><span class="badge" style="background:${tc.bg};color:${tc.color}">${animal.type}</span>`;
+  document.getElementById("enc-content").innerHTML=`
+    <div style="text-align:center;padding:10px 0">
+      <span style="font-size:80px;display:block;animation:bounce 0.6s infinite alternate">${animal.emoji}</span>
+      <div style="font-size:18px;font-weight:500;margin-bottom:2px;color:var(--color-text-primary)">${animal.name}</div>
+      <div style="font-size:13px;color:${RARITY_COLOR[animal.rarity]};font-weight:500;margin-bottom:8px">${RARITY_LABEL[animal.rarity]}</div>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">Wild HP — ${Math.round(wildHp)} / ${animal.hp}</div>
+      <div class="hp-bar"><div class="hp-fill" id="enc-hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">ATK ${animal.atk} · DEF ${animal.def} · SPD ${animal.spd}</div>
+    </div>
+    <div style="font-size:13px;color:var(--color-text-secondary);font-style:italic;margin-bottom:12px">${animal.desc}</div>
+    ${already?`<div style="background:#EAF3DE;border:0.5px solid #97C459;border-radius:var(--border-radius-md);padding:8px;font-size:13px;color:#3B6D11;margin-bottom:10px">✓ Already in Animaldex!</div>`:""}
+    <div class="grid-2" style="margin-bottom:10px">
+      <button class="btn-primary" onclick="throwBall('normal')" style="padding:10px">⚪ Capture Ball (${state.balls})</button>
+      <button class="btn-secondary" onclick="throwBall('super')" ${state.items.superBall<=0?"disabled":""} style="padding:10px">🔵 Super Ball (${state.items.superBall})</button>
+      <button class="btn-secondary" onclick="battleFirst()" ${state.team.length===0?"disabled":""} style="padding:10px">⚔️ Battle First</button>
+      <button class="btn-danger" onclick="fleeEncounter()" style="padding:10px">🏃 Flee</button>
+    </div>
+    <div class="log-box" id="enc-log">A wild <strong>${animal.name}</strong> appeared!</div>
+  `;
+}
+
+function throwBall(type){
+  const animal=currentEncounter.animal;
+  const base={common:65,rare:40,epic:20,legendary:8};
+  // Lower HP = better catch chance
+  const hpBonus=Math.round((1-wildHp/animal.hp)*30);
+  let chance=base[animal.rarity]+hpBonus+(type==="super"?20:0);
+  if(type==="super"){if(state.items.superBall<=0){showToast("No Super Balls!");return;}state.items.superBall--;}
+  else{if(state.balls<=0){showToast("No balls left!");return;}state.balls--;}
+  const log=document.getElementById("enc-log");
+  const roll=Math.random()*100;
+  if(roll<chance){
+    log.innerHTML=`✅ Gotcha! <strong>${animal.name}</strong> was caught! +50 XP +30 Coins`;
+    catchAnimal(animal);
+    disableEncounterBtns();
+    setTimeout(()=>showTab(prevScreen==="region"?"region":"explore"),1800);
+  } else {
+    // Wild animal counter-scratches
+    const scratch=Math.floor(Math.random()*8)+3;
+    wildHp=Math.max(5,wildHp-scratch);
+    const hpPct=Math.round(wildHp/animal.hp*100);
+    const fill=document.getElementById("enc-hp-fill");
+    if(fill){fill.style.width=hpPct+"%";fill.style.background=hpPct>50?"#1D9E75":hpPct>25?"#EF9F27":"#E24B4A";}
+    log.innerHTML=`❌ <strong>${animal.name}</strong> broke free! ${wildHp/animal.hp<0.3?"It's weakened — better catch chance!":""}`;
+    if(Math.random()<0.12){
+      log.innerHTML+=`<br>💨 <strong>${animal.name}</strong> fled!`;
+      disableEncounterBtns();
+      setTimeout(()=>showTab(prevScreen==="region"?"region":"explore"),1500);
+    }
+  }
+  document.getElementById("ball-count").textContent="Balls: "+state.balls;
+  save();
+}
+
+function disableEncounterBtns(){
+  document.querySelectorAll("#enc-content button").forEach(b=>b.disabled=true);
+}
+function fleeEncounter(){showToast("Got away safely!");showTab(prevScreen==="region"?"region":"explore");}
+
+function catchAnimal(animal){
+  state.catches++;
+  const isNew=!state.caught[animal.id];
+  state.caught[animal.id]={level:state.caught[animal.id]?state.caught[animal.id].level:1,xp:0,hp:animal.hp,maxHp:animal.hp};
+  addXP(50);state.coins+=30;
+  showToast(isNew?"New species: "+animal.name+"!":animal.name+" caught!");
+  updateDexCount();save();
+}
+
+function addXP(amt){
+  state.xp=Math.max(0,state.xp+amt);
+  const needed=state.level*100;
+  if(state.xp>=needed){state.xp-=needed;state.level++;showToast("Level up! Now level "+state.level);}
+}
+
+function updateDexCount(){
+  const n=Object.keys(state.caught).length;
+  const el=document.getElementById("dex-count");
+  if(el)el.textContent=n+" / "+ANIMALS.length;
+}
+
+function battleFirst(){
+  if(state.team.length===0){showToast("Add animals to your team first!");return;}
+  const myId=state.team.find(id=>state.caught[id]&&state.caught[id].hp>0);
+  if(!myId){showToast("All team members are fainted! Heal them first.");return;}
+  const myAnimal=ANIMALS.find(a=>a.id===myId);
+  const myData=state.caught[myId];
+  startBattle(myAnimal,myData,currentEncounter.animal,null,"catch");
+}
+
+// ─── BATTLE ─────────────────────────────────────────────────────────────────
+function startBattle(myAnimal,myData,oppAnimal,oppData,mode){
+  currentBattle={
+    myAnimal, myData, oppAnimal,
+    oppHp: oppAnimal.hp,
+    myHp: myData ? myData.hp : myAnimal.hp,
+    mode, round:1, over:false
+  };
+  renderBattle();
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-battle").classList.add("active");
+  prevScreen=currentScreen;currentScreen="battle";
+}
+
+function renderBattle(){
+  const b=currentBattle;
+  document.getElementById("battle-round-badge").textContent="Round "+b.round;
+  const myPct=Math.max(0,Math.round(b.myHp/b.myAnimal.hp*100));
+  const oppPct=Math.max(0,Math.round(b.oppHp/b.oppAnimal.hp*100));
+  const hpColor=p=>p>50?"#1D9E75":p>25?"#EF9F27":"#E24B4A";
+  document.getElementById("battle-content").innerHTML=`
+    <div class="battle-field">
+      <div class="fighter">
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">WILD</div>
+        <span class="fighter-emoji">${b.oppAnimal.emoji}</span>
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${b.oppAnimal.name}</div>
+        <div class="hp-bar"><div class="hp-fill" style="width:${oppPct}%;background:${hpColor(oppPct)}"></div></div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${Math.max(0,Math.round(b.oppHp))} / ${b.oppAnimal.hp}</div>
+      </div>
+      <div style="font-size:22px;align-self:center;color:var(--color-text-secondary)">⚔️</div>
+      <div class="fighter">
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">YOURS</div>
+        <span class="fighter-emoji">${b.myAnimal.emoji}</span>
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${b.myAnimal.name}</div>
+        <div class="hp-bar"><div class="hp-fill" style="width:${myPct}%;background:${hpColor(myPct)}"></div></div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${Math.max(0,Math.round(b.myHp))} / ${b.myAnimal.hp}</div>
+      </div>
+    </div>
+    <div class="log-box" id="battle-log">Choose a move!</div>
+    ${b.over ? renderBattleResult() : `
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px;color:var(--color-text-primary)">Moves</div>
+      <div class="battle-moves">
+        ${b.myAnimal.moves.map((m,i)=>`<button class="move-btn" onclick="useMove(${i})">${m}</button>`).join("")}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-secondary" style="flex:1" onclick="useHealPotion()" ${state.items.healPotion<=0?"disabled":""}>💊 Heal (${state.items.healPotion})</button>
+        <button class="btn-danger" style="flex:1" onclick="fleeBattle()">🏃 Flee</button>
+      </div>
+    `}
+  `;
+}
+
+function renderBattleResult(){
+  const b=currentBattle;
+  const won=b.myHp>0;
+  return`<div style="background:${won?"#E1F5EE":"#FCEBEB"};border:0.5px solid ${won?"#1D9E75":"#E24B4A"};border-radius:var(--border-radius-lg);padding:16px;text-align:center;margin-top:12px">
+    <div style="font-size:28px;margin-bottom:6px">${won?"🏆":"💀"}</div>
+    <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">${won?"Victory!":"Defeated!"}</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px">${won?"+40 XP, +25 Coins":"Better luck next time!"}</div>
+    ${b.mode==="catch"&&won?`<button class="btn-primary" style="margin-bottom:8px;width:100%" onclick="returnToEncounter()">⚪ Now try to catch it!</button>`:""}
+    <button class="btn-secondary" style="width:100%" onclick="showTab('explore')">🌍 Back to Explore</button>
+  </div>`;
+}
+
+function useMove(i){
+  const b=currentBattle;
+  if(b.over)return;
+  const move=b.myAnimal.moves[i];
+
+  // Player attacks — uses fixed formula
+  const dmgToOpp=calcDamage(b.myAnimal.atk, b.oppAnimal.def);
+  b.oppHp-=dmgToOpp;
+  let log=`${b.myAnimal.emoji} used <strong>${move}</strong>! Dealt <strong>${dmgToOpp}</strong> damage.`;
+
+  if(b.oppHp<=0){
+    b.over=true;state.battles++;state.wins++;addXP(40);state.coins+=25;
+    log+=`<br>💥 ${b.oppAnimal.name} fainted! You win!`;
+    if(b.myData)state.caught[b.myAnimal.id].hp=Math.max(1,Math.round(b.myHp));
+    // sync wildHp for catch screen
+    wildHp=1;
+    save();renderBattle();
+    document.getElementById("battle-log").innerHTML=log;return;
+  }
+
+  // Enemy attacks — uses fixed formula
+  const oppMove=b.oppAnimal.moves[Math.floor(Math.random()*b.oppAnimal.moves.length)];
+  const dmgToMe=calcDamage(b.oppAnimal.atk, b.myAnimal.def);
+  b.myHp-=dmgToMe;
+  log+=`<br>${b.oppAnimal.emoji} used <strong>${oppMove}</strong>! Took <strong>${dmgToMe}</strong> damage.`;
+
+  if(b.myHp<=0){
+    b.over=true;state.battles++;
+    log+=`<br>💀 ${b.myAnimal.name} fainted! You lost!`;
+    if(b.myData)state.caught[b.myAnimal.id].hp=0;
+  }
+  b.round++;save();renderBattle();
+  const logEl=document.getElementById("battle-log");
+  if(logEl)logEl.innerHTML=log;
+}
+
+function useHealPotion(){
+  const b=currentBattle;
+  if(state.items.healPotion<=0)return;
+  state.items.healPotion--;
+  const heal=Math.round(b.myAnimal.hp*0.4);
+  b.myHp=Math.min(b.myAnimal.hp,b.myHp+heal);
+  showToast("Healed "+heal+" HP!");
+  renderBattle();
+  document.getElementById("battle-log").innerHTML=`💊 Used Heal Potion! Restored ${heal} HP.`;
+}
+
+function fleeBattle(){showToast("Fled the battle!");showTab("explore");}
+
+function returnToEncounter(){
+  // update wildHp to reflect the beaten-down enemy
+  wildHp=Math.max(5, currentBattle.oppHp);
+  renderEncounter(currentEncounter.animal);
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-encounter").classList.add("active");
+  currentScreen="encounter";
+}
+
+// ─── DEX ────────────────────────────────────────────────────────────────────
+function renderDex(){
+  const search=(document.getElementById("dex-search")||{}).value||"";
+  const owned=Object.keys(state.caught).map(Number);
+  const filtered=ANIMALS.filter(a=>!search||a.name.toLowerCase().includes(search.toLowerCase())||a.region.toLowerCase().includes(search.toLowerCase())||a.type.toLowerCase().includes(search.toLowerCase()));
+  document.getElementById("dex-grid").innerHTML=`
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px">${owned.length} caught · ${ANIMALS.length-owned.length} remaining</div>
+    <div class="grid-3">${filtered.map(a=>{
+      const isOwned=!!state.caught[a.id];
+      const tc=TYPE_COLORS[a.type]||{bg:"#F1EFE8",color:"#444441"};
+      return`<div class="mini-card ${isOwned?"owned":"not-owned"}" onclick="${isOwned?"showAnimalDetail("+a.id+")":"void 0"}">
+        <div style="font-size:32px">${isOwned?a.emoji:"❓"}</div>
+        <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);margin-top:2px">${isOwned?a.name:"????"}</div>
+        <div style="font-size:10px;color:${RARITY_COLOR[a.rarity]}">${RARITY_LABEL[a.rarity]}</div>
+        ${isOwned?`<div style="font-size:10px;padding:1px 5px;border-radius:8px;margin-top:3px;display:inline-block;background:${tc.bg};color:${tc.color}">${a.type}</div>`:""}
+      </div>`;
+    }).join("")}</div>
+  `;
+  updateDexCount();
+}
+
+// ─── ANIMAL DETAIL ──────────────────────────────────────────────────────────
+function showAnimalDetail(id){
+  const animal=ANIMALS.find(a=>a.id===id);
+  const data=state.caught[id];
+  if(!animal||!data)return;
+  const tc=TYPE_COLORS[animal.type]||{bg:"#F1EFE8",color:"#444441"};
+  const hpPct=Math.round(data.hp/animal.hp*100);
+  const hpColor=hpPct>50?"#1D9E75":hpPct>25?"#EF9F27":"#E24B4A";
+  const inTeam=state.team.includes(id);
+  document.getElementById("detail-content").innerHTML=`
+    <div style="text-align:center;padding:10px 0 16px">
+      <span style="font-size:70px;display:block">${animal.emoji}</span>
+      <div style="font-size:20px;font-weight:500;color:var(--color-text-primary)">${animal.name}</div>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:6px;flex-wrap:wrap">
+        <span class="type-pill" style="background:${tc.bg};color:${tc.color}">${animal.type}</span>
+        <span class="type-pill" style="background:#E1F5EE;color:#0F6E56">${animal.region}</span>
+        <span style="font-size:11px;color:${RARITY_COLOR[animal.rarity]};font-weight:500;padding:2px 7px">${RARITY_LABEL[animal.rarity]}</span>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:var(--color-text-primary)">Stats — Level ${data.level}</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+        <span>HP</span>
+        <div style="flex:1;margin:0 10px"><div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div></div>
+        <span>${Math.round(data.hp)} / ${animal.hp}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span>Attack</span><span>${animal.atk}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span>Defense</span><span>${animal.def}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span>Speed</span><span>${animal.spd}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span>Est. damage/hit</span><span style="color:#1D9E75;font-weight:500">${calcDamage(animal.atk,60)} – ${calcDamage(animal.atk,60)+10}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>Habitat</span><span>${animal.habitat}</span></div>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:var(--color-text-primary)">Moves</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${animal.moves.map(m=>`<span style="background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);padding:4px 10px;border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-primary)">${m}</span>`).join("")}</div>
+    </div>
+    <div style="font-size:13px;color:var(--color-text-secondary);font-style:italic;margin-bottom:14px;line-height:1.6">${animal.desc}</div>
+    <div class="grid-2" style="margin-bottom:10px">
+      ${inTeam?`<button class="btn-danger" onclick="removeFromTeam(${id})">Remove from Team</button>`:`<button class="btn-primary" onclick="addToTeam(${id})" ${state.team.length>=6?"disabled":""}>+ Add to Team</button>`}
+      ${data.hp<animal.hp?`<button class="btn-secondary" onclick="healAnimal(${id})" ${state.items.healPotion<=0?"disabled":""}>💊 Heal (${state.items.healPotion})</button>`:"<div></div>"}
+    </div>
+  `;
+  prevScreen=currentScreen;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-animal-detail").classList.add("active");
+  currentScreen="animal-detail";
+}
+
+function addToTeam(id){
+  if(state.team.length>=6){showToast("Team is full!");return;}
+  if(!state.team.includes(id)){state.team.push(id);showToast("Added to team!");save();showAnimalDetail(id);}
+}
+function removeFromTeam(id){state.team=state.team.filter(t=>t!==id);showToast("Removed from team.");save();showAnimalDetail(id);}
+function healAnimal(id){
+  if(state.items.healPotion<=0){showToast("No heal potions!");return;}
+  state.items.healPotion--;
+  const animal=ANIMALS.find(a=>a.id===id);
+  state.caught[id].hp=animal.hp;
+  showToast(animal.name+" fully healed!");save();showAnimalDetail(id);
+}
+
+// ─── TEAM ───────────────────────────────────────────────────────────────────
+function renderTeam(){
+  const list=document.getElementById("team-list");
+  document.getElementById("team-count").textContent=state.team.length+" / 6";
+  if(state.team.length===0){
+    list.innerHTML=`<div style="padding:30px;text-align:center;color:var(--color-text-secondary)"><div style="font-size:40px;margin-bottom:10px">🐾</div><div>No animals in your team yet.</div></div>`;return;
+  }
+  list.innerHTML=`<div style="padding:12px;display:flex;flex-direction:column;gap:10px">${state.team.map(id=>{
+    const animal=ANIMALS.find(a=>a.id===id);
+    const data=state.caught[id];
+    if(!animal||!data)return"";
+    const hpPct=Math.round(data.hp/animal.hp*100);
+    const hpColor=hpPct>50?"#1D9E75":hpPct>25?"#EF9F27":"#E24B4A";
+    const tc=TYPE_COLORS[animal.type]||{bg:"#F1EFE8",color:"#444441"};
+    return`<div class="caught-item" onclick="showAnimalDetail(${id})">
+      <div style="font-size:36px">${animal.emoji}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;font-weight:500;color:var(--color-text-primary)">${animal.name}</span>
+          <span style="font-size:11px;background:${tc.bg};color:${tc.color};padding:2px 7px;border-radius:10px">${animal.type}</span>
+        </div>
+        <div class="hp-bar" style="margin:4px 0"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">${Math.round(data.hp)}/${animal.hp} HP · Lv.${data.level} · DMG ~${calcDamage(animal.atk,60)}-${calcDamage(animal.atk,60)+12}</div>
+      </div>
+    </div>`;
+  }).join("")}
+  <button class="btn-secondary" style="width:100%;margin-top:6px" onclick="startWildBattle()">⚔️ Challenge Wild Battle</button>
+  </div>`;
+}
+
+function startWildBattle(){
+  if(state.team.length===0){showToast("No team members!");return;}
+  const myId=state.team.find(id=>state.caught[id]&&state.caught[id].hp>0);
+  if(!myId){showToast("All team members fainted! Heal them first.");return;}
+  const myAnimal=ANIMALS.find(a=>a.id===myId);
+  const myData=state.caught[myId];
+  const opponents=ANIMALS.filter(a=>a.id!==myId);
+  const opp=opponents[Math.floor(Math.random()*opponents.length)];
+  startBattle(myAnimal,myData,opp,null,"wild");
+}
+
+// ─── SHOP ───────────────────────────────────────────────────────────────────
+function renderShop(){
+  document.getElementById("shop-coins").textContent="Coins: "+state.coins;
+  document.getElementById("shop-content").innerHTML=`
+    <div style="padding:12px">
+      <div style="background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:var(--border-radius-lg);padding:12px;margin-bottom:14px">
+        <div style="font-size:13px;color:#0F6E56;font-weight:500">Your inventory</div>
+        <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+          <span style="font-size:13px">⚪ Balls: <strong>${state.balls}</strong></span>
+          <span style="font-size:13px">🔵 Super: <strong>${state.items.superBall}</strong></span>
+          <span style="font-size:13px">💊 Heals: <strong>${state.items.healPotion}</strong></span>
+          <span style="font-size:13px">⭐ Revives: <strong>${state.items.revive}</strong></span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${[
+          {name:"Capture Ball x5",desc:"Throw to catch wild animals",price:30,emoji:"⚪",action:"buyItem('balls',5,30)"},
+          {name:"Super Ball x3",desc:"Higher catch rate (+20%)",price:60,emoji:"🔵",action:"buyItem('super',3,60)"},
+          {name:"Heal Potion x3",desc:"Restore 40% HP in or out of battle",price:40,emoji:"💊",action:"buyItem('heal',3,40)"},
+          {name:"Revive x1",desc:"Revive a fainted team animal",price:80,emoji:"⭐",action:"buyItem('revive',1,80)"},
+        ].map(item=>`
+          <div class="card" style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:32px">${item.emoji}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:500;color:var(--color-text-primary)">${item.name}</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">${item.desc}</div>
+            </div>
+            <button class="btn-primary" onclick="${item.action}" style="white-space:nowrap;padding:8px 12px">${item.price} 💰</button>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function buyItem(type,qty,cost){
+  if(state.coins<cost){showToast("Not enough coins!");return;}
+  state.coins-=cost;
+  if(type==="balls")state.balls+=qty;
+  else if(type==="super")state.items.superBall+=qty;
+  else if(type==="heal")state.items.healPotion+=qty;
+  else if(type==="revive")state.items.revive+=qty;
+  showToast("Purchased!");save();renderShop();renderExplore();
+}
+
+// ─── PROFILE ────────────────────────────────────────────────────────────────
+function renderProfile(){
+  const caught=Object.keys(state.caught).length;
+  document.getElementById("profile-content").innerHTML=`
+    <div style="padding:12px">
+      <div style="text-align:center;padding:16px 0 20px">
+        <div style="width:70px;height:70px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px">🌿</div>
+        <div style="font-size:18px;font-weight:500;color:var(--color-text-primary)">Wildlife Trainer</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Level ${state.level}</div>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        ${[["Animals caught",caught],["Battles won",state.wins],["Total battles",state.battles],["Coins",state.coins]].map(([label,val])=>`
+          <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:500;color:var(--color-text-primary)">${val}</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">${label}</div>
+          </div>`).join("")}
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:var(--color-text-primary)">Animaldex Progress</div>
+        <div class="hp-bar" style="height:10px"><div class="hp-fill" style="width:${Math.round(caught/ANIMALS.length*100)}%;background:#1D9E75"></div></div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${caught} / ${ANIMALS.length} (${Math.round(caught/ANIMALS.length*100)}%)</div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;color:var(--color-text-primary)">Trainer XP</div>
+        <div class="xp-bar"><div class="xp-fill" style="width:${Math.min(100,Math.round(state.xp/(state.level*100)*100))}%"></div></div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">${state.xp} / ${state.level*100} XP</div>
+      </div>
+      <button class="btn-danger" style="width:100%" onclick="resetGame()">Reset Game</button>
+    </div>
+  `;
+}
+
+function resetGame(){
+  if(!confirm("Reset all progress?"))return;
+  state={balls:15,coins:200,xp:5,level:1,caught:{},team:[],items:{superBall:3,healPotion:3,revive:1},battles:0,wins:0,catches:0};
+  save();showToast("Game reset!");showTab("explore");
+}
+
+renderExplore();
+updateDexCount();
+</script>
